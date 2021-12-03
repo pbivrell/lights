@@ -17,7 +17,7 @@ function Light () {
 
 		let now = Date.now();
 		console.log(color);
-		if (now - last < 500) {
+		if (now - last < 100) {
 			console.log("ignoring time");
 			return;
 		}
@@ -32,7 +32,8 @@ function Light () {
 	return (
 	<div className="App">
 		<header className="App-header">
-			<RgbColorPicker color={color} onChange={onColorChange} />
+            <RgbColorPicker color={color} onChange={onColorChange} />
+            <p>{ color.r}, {color.g}, {color.b}</p>
 		</header>
 	</div>
   	);

@@ -49,7 +49,11 @@ function Programming () {
 					setLights(lights);
 				}, delay,[...nextColors] )
 			}
-		}
+        }
+
+        setTimeout(() => {
+            processSequence(seq)
+        }, delay)
 	}
 
 	const [lights, setLights] = useState([]);
@@ -62,7 +66,7 @@ function Programming () {
 	<div className="App">
 		<input type="file" name="file" onChange={handleFiles} />
 		<header className="App-header">
-			<Stage width={window.innerWidth} height={window.innerHeight - 100}>
+			<Stage width={window.innerWidth} height={window.innerHeight}>
       				<Layer>
 					{
 						lights.map( function(elem, idx) {
