@@ -10,17 +10,20 @@ function Programming () {
 		fr.onload=function(){
 			processSequence(fr.result);
 		}
-
-		fr.readAsBinaryString(e.target.files[0]);
+		
+		if (e.target.files.length > 0) {
+			fr.readAsArrayBuffer(e.target.files[0]);
+		}
 	}
 
 
 	function processSequence(seq) {
-		var bytes = new Uint8Array(seq.length);
-		for (var i=0; i<seq.length; i+=8) {
-			console.log(seq.slice(i, i + 8), parseInt(seq.slice(i, i + 8), 2));
-    			bytes[Math.floor(i/8)] = parseInt(seq.slice(i,i+8), 2);
-		}
+		
+		console.log(seq);
+
+		var bytes = new Uint8Array(seq);
+
+		console.log(bytes);
 
 		let nextColors = [];
 		
