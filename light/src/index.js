@@ -30,7 +30,7 @@ ReactDOM.render(
       	<Route exact path="/control">
           <Control />
       	</Route>
-      	<Route exact path="/other">
+      	<Route exact path="/">
           <Other/>
       	</Route>
       </Switch>

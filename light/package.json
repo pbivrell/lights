@@ -1,4 +1,5 @@
 {
+  "homepage": "http://homeserver.local/lights/build/",
   "name": "light",
   "version": "0.1.0",
   "private": true,
