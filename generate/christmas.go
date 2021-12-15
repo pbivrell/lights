@@ -26,5 +26,5 @@ func main() {
 		l.SetColor(uint16(i-1), 53, 203, 0)
 	}
 	l.SetDelay(500)
-	l.Print()
+	l.Print("christmas.bin")
 }

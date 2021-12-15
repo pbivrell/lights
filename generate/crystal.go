@@ -33,5 +33,5 @@ func main() {
 		}
 		l.SetDelay(500)
 	}
-	l.Print()
+	l.Print("crystal.bin")
 }

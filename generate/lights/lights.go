@@ -1,6 +1,9 @@
 package lights
 
-import "fmt"
+import (
+	"encoding/binary"
+	"os"
+)
 
 func New(count uint16) *Sequence {
 	s := &Sequence{
@@ -22,13 +25,22 @@ type Sequence struct {
 	history [][8]byte
 }
 
-func (s *Sequence) Print() {
+func (s *Sequence) Print(filepath string) error {
+
+	file, err := os.Create(filepath)
+	if err != nil {
+		return err
+	}
+
 	for i := range s.history {
 		for j := 0; j < 8; j++ {
-			fmt.Printf("%08b", s.history[i][j])
+			err = binary.Write(file, binary.LittleEndian, s.history[i][j])
+			if err != nil {
+				return err
+			}
 		}
 	}
-	fmt.Println()
+	return nil
 }
 
 func (s *Sequence) GetColor(index uint16) (r, g, b uint8) {

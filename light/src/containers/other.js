@@ -7,6 +7,9 @@ import Offcanvas from "react-bootstrap/Offcanvas";
 import Button from "react-bootstrap/Button";
 import ListGroup from "react-bootstrap/ListGroup";
 import axios from "axios";
+import FileBrowser from 'react-keyed-file-browser'
+import '../../node_modules/react-keyed-file-browser/dist/react-keyed-file-browser.css';
+
 
 function Other() {
 
@@ -54,50 +57,120 @@ function Other() {
 			]
 		}*/
 	}
-	
+
 	const [data, setData] = useState({});
 
-	useEffect(() => {
+	function getData() {
+		console.log("getting data");
+
 		axios.get("http://homeserver/lights/config.json").then((resp) => {
 			let blob = resp.data;
 			setData(blob);
 		});
+	}
+
+	const [files, setFiles] = useState([]);
+	function getFiles() {
+		axios.get("http://homeserver/lights/patterns/files.json").then((resp) => {
+			let blob = resp.data;
+			setFiles(blob);
+		});
+
+	}
+
+	const [selectedFile, setSelectedFile] = useState();
+	const [selectedLight, setSelectedLight] = useState();
+
+	function clickFile(file) {
+
+		var bodyFormData = new FormData();
+
+		if (!selectedLight) {
+			return;
+		}
+
+		axios.get(`http://homeserver/lights/patterns/${file.key}`,  { responseType: 'arraybuffer' }
+).then((resp) => {
+
+			let bytes = new Uint8Array(resp.data);
+
+			let blob = new Blob([resp.data], {type: "application/octet-stream"});
+
+			bodyFormData.append("file", blob, file.key);
+
+			console.log(selectedLight);
+			selectedLight.lights.forEach((light) => {
+				axios({
+					method: "post",
+					url: `http://${data.lights[light].ip}/upload`,
+					data: bodyFormData,
+					headers: { "Content-Type": "multipart/form-data" },
+				})
+					.then(function (response) {
+						//handle success
+						console.log(response);
+					})
+					.catch(function (response) {
+						//handle error
+						console.log(response);
+					});
+
+				console.log(data.lights[light]);
+			});
+		});
+
+	}
+
+	function clickLight(light) {
+		setSelectedLight(light);
+		console.log(light);
+	}
+
+	useEffect(() => {
+		getData()
+		getFiles()
 	}, []);
 
 
 	const [show, setShow] = useState(false);
 
 	const handleClose = () => setShow(false);
-  	const handleShow = () => setShow(true);
+	const handleShow = () => setShow(true);
 
- 	 return (
+	return (
 		<>
-      		<Button variant="primary" onClick={handleShow}>
-        		Launch
-      		</Button>
+		<Button variant="primary" onClick={handleShow}>
+		Launch
+		</Button>
 
-      		<Offcanvas show={show} onHide={handleClose} scroll={true} backdrop={false}>
-        		<Offcanvas.Header closeButton>
-          			<Offcanvas.Title>Lights</Offcanvas.Title>
-        		</Offcanvas.Header>
-        		<Offcanvas.Body>
-	  				<ListGroup>
-			 				{
-								data.groups ? 
-								(data.groups.map((v, i) => {
-									return (
-										<ListGroup.Item action key={i}>
-                                			<LightListItem name={v.name} all={data.lights} lights={v.lights}/>
-			 							</ListGroup.Item>
-									);
-								}))
-								: <></>
-							}
-					</ListGroup>
-        		</Offcanvas.Body>
-      		</Offcanvas>
-    	</>
-  	);
+		<h3>Selected Light: <span>{selectedLight? selectedLight.name : "" }</span></h3>
+
+		<Offcanvas show={show} onHide={handleClose} scroll={true} backdrop={false}>
+		<Offcanvas.Header closeButton>
+		<Offcanvas.Title>Lights</Offcanvas.Title>
+		</Offcanvas.Header>
+		<Offcanvas.Body>
+		<ListGroup>
+		{
+			data.groups ? 
+			(data.groups.map((v, i) => {
+				return (
+					<ListGroup.Item action key={i} onClick={ () => clickLight(v) } >
+					<LightListItem name={v.name} all={data.lights} lights={v.lights}/>
+					</ListGroup.Item>
+				);
+			}))
+			: <></>
+		}
+		</ListGroup>
+		</Offcanvas.Body>
+		</Offcanvas>
+		<FileBrowser
+		files={files} onSelectFile={clickFile}
+		/>
+
+		</>
+	);
 }
 
 

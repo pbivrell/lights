@@ -5,7 +5,7 @@ function Run() {
 
 	//const [ip, setIP] = useState("192.168.86.136");
 	//const [ip, setIP] = useState("192.168.86.144");
-	const [ip, setIP] = useState("192.168.86.145");
+	const [ip, setIP] = useState("192.168.86.152");
 
 	return (
 	<div className="App">
