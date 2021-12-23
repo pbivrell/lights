@@ -7,10 +7,10 @@ import { RgbColorPicker } from "react-colorful";
 import axios from "axios";
 import Spinner from "react-bootstrap/Spinner";
 
-function Light () {
+function Picker({lightData, lights}) {
 
   	const [color, setColor] = useState({ r: 200, g: 150, b: 35 });
-	const [ip, setIP] = useState({ ip: "192.168.86.162", pixels: 50 });
+	//const [ip, setIP] = useState({ ip: "192.168.86.162", pixels: 50 });
 
 	var last = Date.now();
 	function onColorChange(color) {
@@ -23,30 +23,38 @@ function Light () {
 		}
 		last = now;
 		setColor(color);
-
-		let data = generateBinary(color, ip.pixels);
-                let blob = new Blob([data], {type: "application/octet-stream"});
-
-		let bodyFormData = new FormData();
-
-                bodyFormData.append("file", blob, "dummy.bin");
 		
-		console.log(`http://${ip}/upload`);
+	
+		console.log(lightData);
+		console.log(lights);
+		console.log(lights.lights);
+		
+		if (!lights || !lights.lights || !lightData) {
+			return;
+		}
+		
+		lights.lights.forEach((light) => {
+			console.log("looping", light);
+			let data = generateBinary(color, lightData.lights[light].pixels);
+                	let blob = new Blob([data], {type: "application/octet-stream"});
+			let bodyFormData = new FormData();
+                	bodyFormData.append("file", blob, "dummy.bin");
 
-                axios({
-                	method: "post",
-                	url: `http://${ip.ip}/upload`,
-                	data: bodyFormData,
-                	headers: { "Content-Type": "multipart/form-data" },
-                })
-                .then(function (response) {
-                	//handle success
-                	console.log(response);
-                })
-                .catch(function (response) {
-                	//handle error
-                	console.log(response);
-                });
+                	axios({
+                		method: "post",
+                		url: `http://${lightData.lights[light].ip}/upload`,
+                		data: bodyFormData,
+                		headers: { "Content-Type": "multipart/form-data" },
+                	})
+                	.then(function (response) {
+                		//handle success
+                		console.log(response);
+                	})
+                	.catch(function (response) {
+                		//handle error
+                		console.log(response);
+                	});
+		});
 
 		//axios.get(`http://${ip}/color?r=${color.r}&g=${color.g}&b=${color.b}`).catch((resp) => {
 		//	console.log("TODO")
@@ -92,19 +100,13 @@ function Light () {
   		return [y,(y<<8),(y<<16),(y<<24), x,(x<<8),(x<<16),(x<<24)].map(z=> z>>>24)
 	}
 
-
-
-
-
 	return (
-	<div className="App">
-		<header className="App-header">
+	<div>
             <RgbColorPicker color={color} onChange={onColorChange} />
             <p>{ color.r}, {color.g}, {color.b}</p>
-		</header>
 	</div>
   	);
 }
 
 
-export default Light;
+export default Picker;

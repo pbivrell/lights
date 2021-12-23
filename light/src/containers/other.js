@@ -3,6 +3,8 @@ import '../index.css';
 import 'bootstrap/dist/css/bootstrap.css';
 import React, { useState, useEffect } from "react";
 import LightListItem from "../components/LightListItem";
+import Picker from "../components/Picker";
+import Styler from "../components/Styler";
 import Offcanvas from "react-bootstrap/Offcanvas";
 import Button from "react-bootstrap/Button";
 import ListGroup from "react-bootstrap/ListGroup";
@@ -139,36 +141,31 @@ function Other() {
 
 	return (
 		<>
-		<Button variant="primary" onClick={handleShow}>
-		Launch
-		</Button>
 
 		<h3>Selected Light: <span>{selectedLight? selectedLight.name : "" }</span></h3>
 
-		<Offcanvas show={show} onHide={handleClose} scroll={true} backdrop={false}>
-		<Offcanvas.Header closeButton>
-		<Offcanvas.Title>Lights</Offcanvas.Title>
-		</Offcanvas.Header>
-		<Offcanvas.Body>
-		<ListGroup>
-		{
-			data.groups ? 
-			(data.groups.map((v, i) => {
-				return (
-					<ListGroup.Item action key={i} onClick={ () => clickLight(v) } >
-					<LightListItem name={v.name} all={data.lights} lights={v.lights}/>
-					</ListGroup.Item>
-				);
-			}))
-			: <></>
-		}
-		</ListGroup>
-		</Offcanvas.Body>
+		<Offcanvas show={show} onHide={handleClose} scroll={true} backdrop={false} placement={'bottom'}>
+			<Offcanvas.Header closeButton>
+				<Offcanvas.Title>Lights</Offcanvas.Title>
+			</Offcanvas.Header>
+			<Offcanvas.Body>
+				<ListGroup>
+				{
+					data.groups ? (data.groups.map((v, i) => {
+						return (
+							<ListGroup.Item action key={i} onClick={ () => clickLight(v) } >
+								<LightListItem name={v.name} all={data.lights} lights={v.lights}/>
+							</ListGroup.Item>
+						);
+					})) : <></>
+				}
+				</ListGroup>
+			</Offcanvas.Body>
 		</Offcanvas>
-		<FileBrowser
-		files={files} onSelectFile={clickFile}
-		/>
-
+		<FileBrowser files={files} onSelectFile={clickFile} />
+		<Picker lightData={data} lights={selectedLight}/>
+		<Styler/>
+		<Button variant="primary" onClick={handleShow}>Lights </Button>
 		</>
 	);
 }

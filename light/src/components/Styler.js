@@ -3,19 +3,7 @@ import React, { useState, useEffect } from "react";
 import { Stage, Layer } from 'react-konva';
 import Bulb from "../components/Bulb.js"
 
-function Programming () {
-
-	function handleFiles(e) {
-		var fr=new FileReader();
-		fr.onload=function(){
-			processSequence(fr.result);
-		}
-		
-		if (e.target.files.length > 0) {
-			fr.readAsArrayBuffer(e.target.files[0]);
-		}
-	}
-
+function Styler() {
 
 	function processSequence(seq) {
 		
@@ -52,36 +40,28 @@ function Programming () {
 					setLights(lights);
 				}, delay,[...nextColors] )
 			}
+		}
         }
-        setTimeout(() => {
-            processSequence(seq)
-        }, delay)
-	}
 
-	const [lights, setLights] = useState([]);
+	const [lights, setLights] = useState([{color: `rgb(50,50,50)`},{color: `rgb(50,50,50)`}, {color: `rgb(50,50,50)`}, {color: `rgb(50,50,50)`}, {color: `rgb(50,50,50)`}, {color: `rgb(50,50,50)`}, {color: `rgb(50,50,50)`}, {color: `rgb(50,50,50)`}, {color: `rgb(50,50,50)`}, {color: `rgb(50,50,50)`} ]);
 	const rows = Math.floor((window.innerWidth - 200) / 170);
 	const radius = 50;
 	const xOffset = 120;
 	const yOffset = 120;
 
 	return (
-	<div className="App">
-		<input type="file" name="file" onChange={handleFiles} />
-		<header className="App-header">
-			<Stage width={window.innerWidth} height={window.innerHeight}>
-      				<Layer>
-					{
-						lights.map( function(elem, idx) {
-							console.log(elem, idx);
-							return <Bulb x={xOffset + (xOffset * (idx % rows))} y={yOffset + (yOffset * Math.floor(idx / rows))} color={elem.color} radius={radius}/>
-						})
-					}
-      				</Layer>
-    			</Stage>
-		</header>
-	</div>
+		<Stage width={window.innerWidth} height={200}>
+      			<Layer>
+				{
+					lights.map( function(elem, idx) {
+						console.log(elem, idx);
+						return <Bulb x={xOffset + (xOffset * (idx % rows))} y={yOffset + (yOffset * Math.floor(idx / rows))} color={elem.color} radius={radius}/>
+					})
+				}
+      			</Layer>
+    		</Stage>
   	);
 }
 
 
-export default Programming;
+export default Styler;

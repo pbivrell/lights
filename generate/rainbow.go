@@ -4,16 +4,17 @@ import "github.com/pbivrell/lights/generate/lights"
 
 func main() {
 
-	count := 200
+	count := 100
 
 	l := lights.New(uint16(count))
 
-	for i := 0; i < count; i += 5 {
-		l.SetColor(uint16(i), 255, 32, 45)
-		l.SetColor(uint16(i+1), 255, 239, 31)
-		l.SetColor(uint16(i+2), 50, 255, 32)
-		l.SetColor(uint16(i+3), 32, 34, 255)
-		l.SetColor(uint16(i+4), 255, 32, 219)
+	for i := 0; i < count; i += 6 {
+		l.SetColor(uint16(i), 85, 92, 1)    // yellow
+		l.SetColor(uint16(i+1), 15, 83, 1)  // green
+		l.SetColor(uint16(i+2), 3, 2, 49)   // blue
+		l.SetColor(uint16(i+3), 49, 2, 6)   // pink
+		l.SetColor(uint16(i+4), 154, 9, 5)  // re
+		l.SetColor(uint16(i+5), 154, 36, 5) // orange
 	}
 	l.SetDelay(30000)
 	l.Print("rainbow.bin")

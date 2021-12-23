@@ -49,6 +49,9 @@ func (s *Sequence) GetColor(index uint16) (r, g, b uint8) {
 }
 
 func (s *Sequence) SetColor(index uint16, r, g, b uint8) {
+	if int(index) >= len(s.current) {
+		return
+	}
 	bytes := [8]byte{0x1, r, g, b, byte(index & 0xFF), byte(index >> 8), 0, 0}
 	s.current[index] = Light{R: r, G: g, B: b}
 	s.history = append(s.history, bytes)
@@ -61,6 +64,11 @@ func (s *Sequence) SetDelay(delay uint32) {
 
 func (s *Sequence) setCount(count uint16) {
 	bytes := [8]byte{0x3, byte(count & 0xFF), byte(count >> 8), 0, 0, 0, 0, 0}
+	s.history = append(s.history, bytes)
+}
+
+func (s *Sequence) SetWait(delay uint32) {
+	bytes := [8]byte{0x4, byte(0xFF & delay), byte(delay & 0xFF00 >> 8), byte(delay & 0xFF0000 >> 16), byte(delay >> 24), 0, 0, 0}
 	s.history = append(s.history, bytes)
 }
 

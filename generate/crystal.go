@@ -23,12 +23,12 @@ func main() {
 	for i := 0; i < 10; i++ {
 		for j := int(float64(count) * randPercent); j > 0; j-- {
 			light := uint16(r.Intn(count))
-			if r, _, _ := l.GetColor(light); r == 242 {
-				l.SetColor(light, 172, 176, 175)
-			} else if r, _, _ := l.GetColor(light); r == 172 {
-				l.SetColor(light, 208, 211, 210)
+			if r, _, _ := l.GetColor(light); r == 2 {
+				l.SetColor(light, 140, 140, 140)
+			} else if r, _, _ := l.GetColor(light); r == 50 {
+				l.SetColor(light, 50, 50, 50)
 			} else {
-				l.SetColor(light, 242, 248, 247)
+				l.SetColor(light, 20, 20, 20)
 			}
 		}
 		l.SetDelay(500)
