@@ -6,7 +6,10 @@ import Light from './containers/light.js';
 import Programming from './containers/programming.js';
 import Run from './containers/run.js';
 import Control from './containers/control.js';
+import Home from './containers/home.js';
 import Other from './containers/other.js';
+import Signup from './containers/signup.js';
+import Login from './containers/login.js';
 import reportWebVitals from './reportWebVitals';
 import { BrowserRouter as Router } from 'react-router-dom';
 import { Route, Switch } from "react-router-dom";
@@ -30,8 +33,17 @@ ReactDOM.render(
       	<Route exact path="/control">
           <Control />
       	</Route>
+      	<Route exact path="/signup">
+          <Signup />
+      	</Route>
+      	<Route exact path="/login">
+          <Login />
+      	</Route>
       	<Route exact path="/">
-          <Other/>
+          <Home/>
+      	</Route>
+      	<Route exact path="/home">
+          <Home/>
       	</Route>
       </Switch>
     </Router>

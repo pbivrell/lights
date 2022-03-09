@@ -1,0 +1,60 @@
+.Picker {
+	padding: 1em;
+	width: 33%;
+	max-width: 200px;
+	height: auto;
+	position: relative;
+}
+
+.ButtonImage {
+	width: 100% !important;
+	height: auto;
+	position: relative;
+}
+
+.ButtonText {
+	position: absolute;
+	top: 1.5em;
+  	left: 50%;
+  	transform: translate(-50%, -50%);
+	background: rgba(68, 68, 68, 0.4);
+	padding: 0 0.3em 0 0.3em;
+	font-size: 1.0em;
+	width: 90%;
+	text-align: center;
+	z-index: 1;
+}
+
+/* http://jsfiddle.net/AndreaLigios/jtLbpy62/2281/ */
+[data-tooltip]:before {
+    /* needed - do not touch */
+    content: attr(data-tooltip);
+    position: absolute;
+    opacity: 0;
+    z-index: 99;
+
+    /* customizable */
+    text-align: left;
+    transition: all 0.15s ease;
+    padding: 10px;
+    color: #333;
+    border-radius: 10px;
+    box-shadow: 2px 2px 1px silver;
+    pointer-events: none;
+}
+
+[data-tooltip]:hover:before {
+    /* needed - do not touch */
+    opacity: 1;
+
+    /* customizable */
+    background: lightgrey;
+    margin-top: 2.5em;
+    margin-left: -30%;
+    font-size: 0.75em;
+    white-space: pre;
+    pointer-events: none;
+
+
+}
+

@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import LightsDetect from "../components/LightDetect";
 import LightsIP from "../components/LightIP";
 
-function Setup () {
+function Setup ({cancel}) {
 	const [prom, setPrompt] = useState(0);
 	
 	function updatePrompt(i = 1) {
@@ -19,6 +19,7 @@ function Setup () {
 	return (
     	<div className="App">
       		<header className="App-header">
+			<Button className="close" onClick={cancel}>X</Button>
         		<div>
 				{ prom === 0 ? (
 					<>

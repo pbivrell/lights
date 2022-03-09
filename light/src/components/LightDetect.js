@@ -7,10 +7,10 @@ import Select from 'react-select'
 
 
 const baseURL = process.env.REACT_APP_URL;
-const timeout = 30 * 1000;
+const timeout = 10 * 1000;
 
 export default function LightDetect({next}) {
-	const [loading, setLoading] = useState(false);
+	const [loading, setLoading] = useState(true);
 	const [failed, setFailed] = useState(false);
 	const [networks, setNetworks] = useState([]);
 	const [ssid, setSSID] = useState("");
@@ -25,10 +25,11 @@ export default function LightDetect({next}) {
 		setLoading(true);
 		axios.get(baseURL + "/networks", { timeout: timeout}).then((response) => {
 			setNetworks(response.data);
+			setLoading(false);
     		}).catch((resp) => {
 			setFailed(true);
+			setLoading(false);
 		});
-		setLoading(false);
 	}
 
 	async function onSubmit() {
