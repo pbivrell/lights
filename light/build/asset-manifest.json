@@ -1,29 +1,29 @@
 {
   "files": {
-    "main.css": "./static/css/main.91f74e9c.chunk.css",
-    "main.js": "./static/js/main.61f7225c.chunk.js",
-    "main.js.map": "./static/js/main.61f7225c.chunk.js.map",
-    "runtime-main.js": "./static/js/runtime-main.485ecee1.js",
-    "runtime-main.js.map": "./static/js/runtime-main.485ecee1.js.map",
+    "main.css": "./static/css/main.ad7b2973.chunk.css",
+    "main.js": "./static/js/main.5a811127.chunk.js",
+    "main.js.map": "./static/js/main.5a811127.chunk.js.map",
+    "runtime-main.js": "./static/js/runtime-main.e98c6675.js",
+    "runtime-main.js.map": "./static/js/runtime-main.e98c6675.js.map",
     "static/css/2.144a08bb.chunk.css": "./static/css/2.144a08bb.chunk.css",
-    "static/js/2.3b9b19e8.chunk.js": "./static/js/2.3b9b19e8.chunk.js",
-    "static/js/2.3b9b19e8.chunk.js.map": "./static/js/2.3b9b19e8.chunk.js.map",
-    "static/js/3.d6a341ea.chunk.js": "./static/js/3.d6a341ea.chunk.js",
-    "static/js/3.d6a341ea.chunk.js.map": "./static/js/3.d6a341ea.chunk.js.map",
+    "static/js/2.60e26a59.chunk.js": "./static/js/2.60e26a59.chunk.js",
+    "static/js/2.60e26a59.chunk.js.map": "./static/js/2.60e26a59.chunk.js.map",
+    "static/js/3.af235f1c.chunk.js": "./static/js/3.af235f1c.chunk.js",
+    "static/js/3.af235f1c.chunk.js.map": "./static/js/3.af235f1c.chunk.js.map",
     "index.html": "./index.html",
     "static/css/2.144a08bb.chunk.css.map": "./static/css/2.144a08bb.chunk.css.map",
-    "static/css/main.91f74e9c.chunk.css.map": "./static/css/main.91f74e9c.chunk.css.map",
-    "static/js/2.3b9b19e8.chunk.js.LICENSE.txt": "./static/js/2.3b9b19e8.chunk.js.LICENSE.txt",
+    "static/css/main.ad7b2973.chunk.css.map": "./static/css/main.ad7b2973.chunk.css.map",
+    "static/js/2.60e26a59.chunk.js.LICENSE.txt": "./static/js/2.60e26a59.chunk.js.LICENSE.txt",
     "static/media/AddBulb_crop.aa00de5e.png": "./static/media/AddBulb_crop.aa00de5e.png",
     "static/media/Bulb_crop.4dabd27e.png": "./static/media/Bulb_crop.4dabd27e.png",
     "static/media/DisconnectedBulb_crop.4d12a43d.png": "./static/media/DisconnectedBulb_crop.4d12a43d.png",
     "static/media/OffBulb_crop.94f07016.png": "./static/media/OffBulb_crop.94f07016.png"
   },
   "entrypoints": [
-    "static/js/runtime-main.485ecee1.js",
+    "static/js/runtime-main.e98c6675.js",
     "static/css/2.144a08bb.chunk.css",
-    "static/js/2.3b9b19e8.chunk.js",
-    "static/css/main.91f74e9c.chunk.css",
-    "static/js/main.61f7225c.chunk.js"
+    "static/js/2.60e26a59.chunk.js",
+    "static/css/main.ad7b2973.chunk.css",
+    "static/js/main.5a811127.chunk.js"
   ]
 }

@@ -6,7 +6,7 @@ html, body {
 	height: 100%;
 }
 
-.Auth{
+.Popup{
 	padding: 1em;
 	border: none;
 	border-radius: 2pt;
@@ -15,14 +15,18 @@ html, body {
 	transition: .1s;
 }
 
+
 @media (min-width: 479px) {
-	.Auth{
+	.Popup{
 		position: absolute;
 		width: 50%;
+
+	}
+
+	.Centered {
 		top: 25%;
 		left: 50%;
 		transform: translate(-50%, -50%);
-
 	}
 }
 

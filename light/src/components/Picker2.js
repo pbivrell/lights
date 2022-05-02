@@ -6,33 +6,57 @@ import offbulb from '../res/OffBulb_crop.png';
 import disconnectedbulb from '../res/DisconnectedBulb_crop.png';
 import axios from "axios";
 import {displayError} from "../lib/hooks";
+import LightSettings from '../containers/lightsettings.js';
+import {ToggleButton, ToggleButtonGroup, DropdownButton, Dropdown, ListGroup} from "react-bootstrap";
 
-function Picker2({name, light, initalState}) {
+function Picker2({name, hub}) {
+
+	const [settings, setSettings] = useState(false);
+	const [light, setLight] = useState({});
+	const [patternMode, setPatternMode] = useState(true);
+	const [patterns, setPatterns] = useState([]);
+	const [selected, selectPattern] = useState("");
 
 	useEffect(() => {
 		getLight();
-	}, [light])
+		getPatterns();
+	}, [])
 
-
-	const [bulbState, setBulbState] = useState(initalState);
 
   	const [color, setColor] = useState({ hsl: {a: 1}, rgb: {a: 1}, hex: ""});
 	
+	function settingsCallback() {
+		setSettings(false);
+		getLight();
+	}
+
 	function getLight() {
-		if (!light || !light.IP) {
-			return
-		}
-		axios.get(`http://${light.IP}/status`, {timeout: 1000})
-		.then((resp) =>{
-			setBulbState(resp.status ? 0 : 1);
-		})
-		.catch((e) => {
-			setBulbState(2);
+		
+		axios.get(`${process.env.REACT_APP_API_URL}/user/hub/${hub}/light/${name}`, {
+			withCredentials: true,
+		}).then((resp) => {
+			setLight(resp.data);
+			let pattern = resp.data.PatternID.split("~")[1].split(".")[0].split("-");
+			console.log(pattern);
+			setColor({
+				rgb: {r: pattern[0], g: pattern[1], b: pattern[2], a: pattern[3]/100},
+				hex: `rgba(${pattern[0]},${pattern[1]},${pattern[2]},${pattern[3]/100}`,
+				hsl: {a: pattern[3]/100},
+
+			});
+		}).catch((e) => {
 			displayError(e);
 		});
 	}
 
-	function pushLight(pushColor) {
+	function getPatterns() {
+		setPatterns([
+			{"alias": "spring", "id": 0, "creator": "demo"},
+			{"alias": "spring", "id": 1, "creator": "demo"},
+		]);
+	}
+
+	/*function pushLight(pushColor) {
 		let data = generateBinary(pushColor, light.Count);
                 let blob = new Blob([data], {type: "application/octet-stream"});
                 let bodyFormData = new FormData();
@@ -50,11 +74,28 @@ function Picker2({name, light, initalState}) {
                 .catch(function (response) {
                 	displayError(response)
                 });
+	}*/
+
+	function pushLight(pushColor) {
+		axios.post(
+			`${process.env.REACT_APP_API_URL}/user/hub/${hub}/light/${name}`, 
+			{ PatternID: `~${pushColor.r}-${pushColor.g}-${pushColor.b}-${Math.floor(pushColor.a * 100)}.bin` }, 
+			{withCredentials: true,}
+		)
+		.then((resp) => {
+			console.log("toggled");
+		})
+		.catch((e) => {
+        		displayError(e);
+		});
 	}
 
-	function pushToggle() {
-		
-		axios.get(`http://${light.IP}/toggle`, {timeout: 1000})
+	function pushToggle(s) {
+		axios.post(
+			`${process.env.REACT_APP_API_URL}/user/hub/${hub}/light/${name}`,
+			{Status: s}, 
+			{withCredentials: true,}
+		)
 		.then((resp) => {
 			console.log("toggled");
 		})
@@ -64,16 +105,10 @@ function Picker2({name, light, initalState}) {
 	}
 
 	function toggleBulb() {
-		if (bulbState == 2) {
-			getLight();
-			return;
-		}else if(bulbState == 1) {
-			setBulbState(0);
-		}else {
-			setBulbState(1);
-		}
-
-		pushToggle();
+		const map = {...light};
+                map.Status = !map.Status;
+                setLight(map);
+		pushToggle(map.Status);
 	}
 
 	function onColorChange(hue, c) {
@@ -131,33 +166,65 @@ function Picker2({name, light, initalState}) {
   		return [y,(y<<8),(y<<16),(y<<24), x,(x<<8),(x<<16),(x<<24)].map(z=> z>>>24)
 	}
 
-	function getToolTip() {
-		if (!light || Object.keys(light).length === 0) {
-			return ""
-		}
-		return `ID: ${light.ID}
-IP: ${light.IP}
-Version: ${light.Version}
-${new Date(light.Updated).toLocaleDateString() +" " +  new Date(light.Updated).toLocaleTimeString()}`
+	function dropDown(e) {
+		console.log("Dropdown", e);
+	}
+
+	function renderPatterns() {
+	
+
+		console.log("patterns", patterns);
+
+		return (
+			<div className="Popup Pattern">
+				{ patterns.map(x=>{
+					return <div onClick={()=>{ selectPattern(x.id)}}>{x.alias} - {x.creator}</div>
+				}) }
+			</div>
+		);
+	}
+
+	function renderSettings() {
+		return (
+			<div className="Popup Auth">
+				<LightSettings light={light} hub={hub} callback={settingsCallback}/>
+			</div>
+		);
+	}
+
+	function togglePatternMode() {
+		setPatternMode(!patternMode);
 	}
 
 	return (
 	<div className="Picker">
+		{ settings ? renderSettings() : <></>}
 
-		<div className="ButtonText" data-tooltip={getToolTip()}>{name.alias}</div>
+		<div className="ButtonText" onClick={()=>setSettings(!settings)}>{light.Alias === "" ? light.ID : light.Alias}</div>
 		<div className="Button" style={{background: color.hex}} onClick={toggleBulb}>
-			<img className="ButtonImage" src={bulbState === 0 ? bulb : bulbState === 1 ? offbulb : disconnectedbulb }></img>
+			<img className="ButtonImage" src={light.Status ? bulb : offbulb }></img>
 		</div>
-		{ bulbState === 0 ? 
+		<div>
+			<p>{selected}</p>
+		</div>
+		{ light.Status ?  
 			<>
-				<br/>
-				<HuePicker className="ButtonImage" color={color.hsl} onChangeComplete={(c) => onColorChange(false, c)}/>
-				<br/>
-                		<AlphaPicker className="ButtonImage" color={color.hsl} onChangeComplete={(c) => onColorChange(true, c)}/>
+			<input type="checkbox" onClick={()=>togglePatternMode()}/>
+			{!patternMode ?
+				<>
+					<br/>
+					<HuePicker className="ButtonImage" color={color.hsl} onChangeComplete={(c) => onColorChange(false, c)}/>
+					<br/>
+                			<AlphaPicker className="ButtonImage" color={color.hsl} onChangeComplete={(c) => onColorChange(true, c)}/>
+				</>
+			:
+			renderPatterns()}
 			</>
+
 		: 
 			<></>
 		}
+
 	</div>
   	);
 }

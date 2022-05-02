@@ -1,6 +1,6 @@
 .Picker {
 	padding: 1em;
-	width: 33%;
+	width: 50%;
 	max-width: 200px;
 	height: auto;
 	position: relative;
@@ -23,6 +23,28 @@
 	width: 90%;
 	text-align: center;
 	z-index: 1;
+}
+
+.Pattern {
+	display: flex;
+	flex-direction: column;
+	max-height: 10%;
+	overflow-y: scroll;
+}
+
+.Button {
+	margin-top: 1.5em;
+}
+
+.PatternPicker button {
+	width: 100%;
+	background: rgba(68, 68, 68, 0.4);
+	color: black;
+}
+
+.PatternPicker {
+	margin-top: 1em;
+	overflow-y: scroll;
 }
 
 /* http://jsfiddle.net/AndreaLigios/jtLbpy62/2281/ */

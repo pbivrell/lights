@@ -1,0 +1,14 @@
+.SettingsFormInput {
+	display: inline !important;
+	width: 50% !important;
+	padding: 0 !important;
+	height: auto !important;
+	margin-left: 1em;
+}
+
+.Auth {
+	width: 90%;
+	background: white;
+	position: absolute;
+	z-index: 1;
+}

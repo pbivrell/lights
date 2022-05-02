@@ -16,7 +16,7 @@ function Home() {
 
 	const [setup, setSetup] = useState(false);
 
-	const [lightMap, setLightMap] = useState({});
+	const [hubs, setHubs] = useState([]);
 
 	const [userData, setUserData] = useState({});
 
@@ -71,9 +71,11 @@ function Home() {
 
 	function getUserData() {
 		
+		console.log("Loading", authed);
 		axios.get(`${process.env.REACT_APP_API_URL}/user`, {
 			withCredentials: true,
 		}).then((resp) => {
+			console.log("Test",resp);
 			loadUserData(resp.data);
 		}).catch((e) => {
 			setAuthed(false);
@@ -84,26 +86,29 @@ function Home() {
 	function loadUserData(data) {
 		setUserData(data);
 		
-		data.lights.forEach((v) => {
-			lookupLight(v.id);
-		});
+		if (data.hubs) {
+			data.hubs.forEach((v) => {
+				lookupHub(v.id);
+			});
+		}
 
 	}
 
-	function lookupLight(name) {
-		
-		axios.get(`${process.env.REACT_APP_API_URL}/light?light=${name}`, {
+	function lookupHub(name) {
+		axios.get(`${process.env.REACT_APP_API_URL}/user/hub/${name}`, {
 			withCredentials: true,
 		}).then((resp) => {
-			let map = {...lightMap};
-			let lightData = resp.data;
-
-			map[name] = lightData;
-			setLightMap(map)
-			console.log(lightMap);
+			loadHubData(name, resp.data);
 		}).catch((e) => {
 			displayError(e);
 		});
+	}
+
+	function loadHubData(hub, data) {
+
+		const map = {...hubs};
+		map[hub] = data;
+		setHubs(map);
 	}
 
 	function renderRegister() {
@@ -116,21 +121,22 @@ function Home() {
 
 	function renderAuth() {
 		return (
-			<div className="Auth">
+			<div className="Popup Centered">
 				<ToggleButtonGroup type="checkbox" value={register} onChange={(v) => setRegister(!register) }>
-      					<ToggleButton id="tbg-btn-1" value={true}>
+      					<ToggleButton id="tbg-btn-1" value={false}>
       						Login	
 					</ToggleButton>
-      					<ToggleButton id="tbg-btn-3" value={false}>
+      					<ToggleButton id="tbg-btn-3" value={true}>
       						Signup
 					</ToggleButton>
     				</ToggleButtonGroup>
-				{ register ?
+				{ !register ?
 					<>
 					<h3>Login</h3>
 					<Login callback={ () => {
-						setAuthed(true) 
-						getUserData()
+						setAuthed(true);
+						console.log("Logged in");
+						window.location.reload();
 					}}/>
 					</>
 				:
@@ -150,9 +156,10 @@ function Home() {
 			<div className="Page">
 				<div className="User">
 			      		<DropdownButton
+						
         					drop={'up'}
         					variant="secondary"
-						title={userData.id}
+						title={userData.id ? userData.id : ""}
 						size="lg"
 						onSelect={dropDown}
       					>
@@ -161,15 +168,21 @@ function Home() {
         					<Dropdown.Item eventKey="logout">Logout</Dropdown.Item>
       					</DropdownButton>
 				</div>
-				{ setup ? <Setup cancel={addBulbToggle}/> : <></> }
 				<div className="ButtonPanel">
-					{ userData.lights ? userData.lights.map((v) => {
-						return <Picker2 light={lightMap[v.id]} className="ButtonItem" initalState={1} name={v}/>
-					}) : <></>
+					{ hubs !== null ? Object.entries(hubs).map(([key, value])=>{
+						console.log("This", hubs);
+						if (value.lights.length < 1 ) {
+							return <><p>None of your lights are on! </p></>
+						}else {
+							return value.lights.map((value)=>{
+								return <Picker2 className="ButtonItem" hub={key} name={value}/>
+							});
+						}
+					}) : 
+						<>
+							<p>You don't appear to have a registed hub <a href="#">register now</a>. If this is a mistake get <a href="#">more info</a></p>
+						</>
 					}
-					<div className="Picker" onClick={addBulbToggle}>
-                        			<img className="ButtonImage" src={AddBulb}></img>
-					</div>
 				</div>
 			</div>
 		);
@@ -177,6 +190,9 @@ function Home() {
 
 	useEffect(() => {
 		getUserData()
+		setTimeout(()=>{
+			setAuthed(false);
+		}, 5 * 60 * 1000)
 		//console.log(sampleUserData().lights);
 		//setUserData(sampleUserData());
 	}, []);

@@ -15,5 +15,13 @@ export function useFormFields(initialState) {
 }
 
 export function displayError(e) {
+	if (e.response) {
+
+		console.log("URL", e.request.responseURL);	
+		if (e.response.status === 401 && e.request.responseURL !==  "https://lights.paulbivrell.com/user") {
+			console.log("reload please");
+
+		}
+	}
 	console.log(e);
 }
