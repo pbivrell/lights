@@ -30,6 +30,11 @@ func (d *DebugResponder) Unauthorized() ErrorResponse {
 	return d.base.Unauthorized()
 }
 
+func (d *DebugResponder) BadRequest() ErrorResponse {
+	d.logger.Debug("bad request")
+	return d.base.BadRequest()
+}
+
 func (d *DebugResponder) InternalError(err error) ErrorResponse {
 
 	d.logger.WithFields(logrus.Fields{

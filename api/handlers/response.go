@@ -7,6 +7,7 @@ import (
 type Responder interface {
 	InvalidSession() ErrorResponse
 	Unauthorized() ErrorResponse
+	BadRequest() ErrorResponse
 	InternalError(error) ErrorResponse
 	OK(headers ...map[string]string) Response
 }
@@ -54,6 +55,17 @@ func (b *BaseResponder) InvalidSession() ErrorResponse {
 		},
 		Reason: "Invalid Session. Bad request from client, please reload page",
 	}
+}
+
+func (b *BaseResponder) BadRequest() ErrorResponse {
+	return ErrorResponse{
+		Response: Response{
+			Code:    http.StatusBadRequest,
+			Headers: b.GlobalHeaders,
+		},
+		Reason: "Invalid json request",
+	}
+
 }
 
 func (b *BaseResponder) Unauthorized() ErrorResponse {

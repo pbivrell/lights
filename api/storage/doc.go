@@ -5,28 +5,49 @@ import (
 	"time"
 )
 
+type Hub struct {
+	Key    string   `json:"hubKey" dynamodbav:"key"`
+	ID     string   `json:"hubID" dynamodbav:"id"`
+	Lights []string `json:"lights" dynamodbav:"lights"`
+}
+
+type LightNullable struct {
+	Alias     *string    `dynamodbav:"alias" csv:"-" json:",omitempty"`
+	ID        *string    `dynamodbav:"id" csv:"id" json:",omitempty"`
+	Status    *bool      `dynamodbav:"status" csv:"status" json:",omitempty"`
+	Updated   *time.Time `dynamodbav:"updated" csv:"-" json:",omitempty"`
+	PatternID *string    `dynamodbav:"running" csv:"patternID" json:",omitempty"`
+	Count     *uint8     `dynamodbav:"count" csv:"count" json:",omitempty"`
+	Changed   *time.Time `dynamodbav:"changed" csv:"-" json:",omitempty"`
+}
+
 type Light struct {
-	ID      string    `dynamodbav:"id"`
-	Mac     string    `dynamodbav:"mac"`
-	IP      string    `dynamodbav:"ip"`
-	Key     string    `dynamodbav:"key"`
-	Version string    `dynamodbav:"version"`
-	Status  bool      `dynamodbav:"status"`
-	Updated time.Time `dynamodbav:"updated"`
-	Count   int       `dynamodbav:"count"`
-	Running string    `dynamodbav:"running"`
+	Alias     string    `dynamodbav:"alias" csv:"-"`
+	ID        string    `dynamodbav:"id" csv:"id"`
+	Status    bool      `dynamodbav:"status" csv:"status"`
+	Updated   time.Time `dynamodbav:"updated" csv:"-"`
+	PatternID string    `dynamodbav:"running" csv:"patternID"`
+	Count     uint8     `dynamodbav:"count" csv:"count"`
+	Changed   time.Time `dynamodbav:"changed" csv:"-"`
+}
+
+type Pattern struct {
+	Alias   string `json:"alias"`
+	ID      string `json:"id"`
+	Data    []byte `json:"-"`
+	Creator string `json:"creator"`
 }
 
 type User struct {
-	ID       string       `json:"id" dynamodbav:"id"`
-	Hash     string       `json:"hash" dynamodbav:"hash"`
-	Email    string       `json:"email" dynamodbav:"email"`
-	Lights   []LightAlias `json:"lights" dynamodbav:"lights"`
-	Groups   []Group      `json:"groups" dynamodbav:"groups"`
-	Password string       `json:"password"`
+	ID       string     `json:"id" dynamodbav:"id"`
+	Hash     string     `json:"hash" dynamodbav:"hash"`
+	Email    string     `json:"email" dynamodbav:"email"`
+	Hubs     []HubAlias `json:"hubs" dynamodbav:"hubs"`
+	Groups   []Group    `json:"groups" dynamodbav:"groups"`
+	Password string     `json:"password"`
 }
 
-type LightAlias struct {
+type HubAlias struct {
 	ID    string `json:"id" dynamodbav:"id"`
 	Alias string `json:"alias" dynamodbav:"alias"`
 }
@@ -44,13 +65,17 @@ type Session struct {
 
 var ErrorNotFound = errors.New("no item with id")
 
-type Storage interface {
-	WriteSession(*Session) error
-	DeleteSession(key string) error
-	ReadSession(key string) (*Session, error)
-	WriteUser(u *User) error
-	ReadUser(key string) (*User, error)
-	DeleteUser(key string) error
-	WriteLight(l *Light) error
-	ReadLight(key string) (*Light, error)
+type Storage[T any] interface {
+	Write(string, *T) error
+	Read(string) (*T, error)
+	List() ([]*T, error)
+	Delete(string) error
+}
+
+type AppStorage struct {
+	User    Storage[User]
+	Session Storage[Session]
+	Hub     Storage[Hub]
+	Light   Storage[Light]
+	Pattern Storage[Pattern]
 }
