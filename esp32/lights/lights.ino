@@ -4,141 +4,39 @@
 #include <Adafruit_NeoPixel.h>
 #include <EEPROM.h>
 #include <FS.h>
-
+#include <HTTPClient.h>
 
 #define MAX_INSTRUCTIONS 20000
-#define EEPROM_DATA_SIZE 32
-#define EEPROM_TOTAL_SIZE (2 * EEPROM_DATA_SIZE) + 2
 #define LED_PIN     15
 #define LED_DEFAULT 1000
 
-const String Version = "0.1.1";
+const String Version = "0.3.0";
+
+uint8_t LightCount = 50;
+
 const String DeviceKey = "theoriginallightskey";
 const String DeviceID = "OriginalLight1";
-const char* ssidAP     = "P-Lights-0";
-const char* passwordAP = "defaultpassword";
-IPAddress localIP(192, 168, 1, 115);
-IPAddress gateway(192, 168, 1, 254);
-IPAddress subnet(255, 255, 255, 0);
+
+const char* ssid     = "LightHub";
+const char* password = "defaultpassword";
+
+const String hubURL = "http://8.8.4.4/register";
+
 Adafruit_NeoPixel strip(LED_DEFAULT, LED_PIN, NEO_GRB + NEO_KHZ800);
 
-
+bool FoundHub = false;
 bool LightStatus = false, LightChange = false;
 bool uploading = false, uploaded = false;
+String runningFile = "default.bin";
+
 WebServer server(80);
-
-IPAddress serverIP; 
-
-
-// readCreds retrieves credentials from EEPROM, returning a boolean indicating if the credentials exist.
-bool readCreds(char ssid[EEPROM_DATA_SIZE], char password[EEPROM_DATA_SIZE]) {
-
-  char ok[2];
-  ok[0] = char(EEPROM.read(0 + (EEPROM_DATA_SIZE * 2)));
-  ok[1] = char(EEPROM.read(1 + (EEPROM_DATA_SIZE * 2)));
-  
-  if (ok[0] != 'O' || ok[1] != 'K') {
-    return false;
-  }
-  
-  for (int i = 0; i < EEPROM_DATA_SIZE; ++i){
-    ssid[i] = char(EEPROM.read(i));
-    if (ssid[i] == '\0') {
-      break;
-    }
-  }
-
-  for (int i = 0; i < EEPROM_DATA_SIZE; ++i){
-    password[i] = char(EEPROM.read(i + EEPROM_DATA_SIZE));
-    if (password[i] == '\0') {
-      break;
-    }
-  }
-
-  return true;
-}
-
-bool writeCreds(String ssidS, String passwordS) {
-
-  char ssid[EEPROM_DATA_SIZE];
-  char password[EEPROM_DATA_SIZE];
-
-  if (ssidS.length() > EEPROM_DATA_SIZE || passwordS.length() > EEPROM_DATA_SIZE) {
-    return false;
-  }
-
-  ssidS.toCharArray(ssid, 32);
-  passwordS.toCharArray(password, 32);
-  
-  for (int i = 0; i < ssidS.length(); ++i){
-    EEPROM.write(i, ssid[i]);
-  }
-  EEPROM.write(ssidS.length(), '\0');
-  
-  for (int i = 0; i < passwordS.length() ; ++i){
-    EEPROM.write(i + EEPROM_DATA_SIZE, password[i]);
-  }
-  EEPROM.write(passwordS.length() + EEPROM_DATA_SIZE, '\0');
-
-
-  char ok[2];
-  EEPROM.write(0 + (EEPROM_DATA_SIZE * 2), 'O');
-  EEPROM.write(1 + (EEPROM_DATA_SIZE * 2), 'K');
-
-  EEPROM.commit();
-  return true;
-}
-
-// startAP creates an AP with the provided ssid and password at the globally configured network.
-// startAP then also configures and starts a webserver with routes for connecting to a local network.
-void startAP(const char *ssid, const char *password) {
-
-  WiFi.softAPConfig(localIP, gateway, subnet);
-  WiFi.softAP(ssid, password);
-
-  IPAddress IP = WiFi.softAPIP();
-  Serial.print("AP IP address: ");
-  Serial.println(IP);
-
-  server.enableCORS();
-  server.on("/", handleIndex);
-  server.on("/login", handleLogin);
-  server.on("/ip", handleIP);
-  server.on("/networks", handleNetwork);
-
-  server.begin();
-}
-
-void handleIP() {
-    Serial.println("Handler: /ip");
-    server.send(200, "text/html", serverIP.toString()); 
-}
-
-void handleNetwork() {
-  Serial.println("Handler: /networks");
-
-  int n = WiFi.scanNetworks();
-   
-  String networkJSON = "[";
-
-  for (int i = 0; i < n; ++i) {      
-    networkJSON += '"' + WiFi.SSID(i) + '"';
-    if (i < n-1) {
-      networkJSON += ",";
-    }
-    delay(10);
-  }
-
-  networkJSON += "]";
-
-  server.send(200, "application/json", networkJSON);
-  
-}
 
 void startServer() {
 
   server.stop();
 
+  server.on("/count", handleCount);
+  server.on("/color", handleColor);
   server.on("/toggle", handleToggle);
   server.on("/status", handleStatus);
   server.on("/upload",HTTP_POST, []() {
@@ -148,6 +46,16 @@ void startServer() {
 
   server.begin();
 
+}
+
+bool reportHub() {
+  
+  HTTPClient http;   
+  http.begin(hubURL); 
+  http.addHeader("Content-Type", "application/x-www-form-urlencoded");
+  int httpResponseCode = http.POST("id="+DeviceID+"&ip="+WiFi.localIP().toString()); 
+  String response = http.getString();  
+  return true;
 }
 
 String statusJSON(boolean secret) {
@@ -164,18 +72,21 @@ String statusJSON(boolean secret) {
     return json;
 }
 
-void handleStatus() {
-    Serial.println("Handler: /status");
+void handleCount() {
+  Serial.println("Handler: /count");
+  LightCount  = server.arg("c").toInt();
+  server.send(200, "text/html", "OK");
+}
 
-    String json = statusJSON(true);
-    
-    server.send(200, "application/json", json);
+void handleStatus() {
+  Serial.println("Handler: /status");
+  String json = statusJSON(true);  
+  server.send(200, "application/json", json);
 }
 
 void handleToggle() {
 
   Serial.println("Handler: /toggle");
-
 
   LightStatus = !LightStatus;
   LightChange = true;
@@ -186,13 +97,53 @@ void handleToggle() {
   server.send(200, "text/html", "OK"); 
 }
 
-// handleIndex is a response handler that returns the page generated by the WifiSetup function.
-void handleIndex() {
-    Serial.println("Handler: /");
+size_t instructions = 0;
+static uint8_t dataBuffer[MAX_INSTRUCTIONS];
 
-  
-    server.send(200, "text/html", WifiSetup()); 
+
+void handleColor() {
+
+  Serial.println("handling: /color");
+  int r = server.arg("r").toInt();
+  int g = server.arg("g").toInt();
+  int b = server.arg("b").toInt();
+  Serial.println(r);
+  Serial.println(g);
+  Serial.println(b);
+  setColor(r,g,b);
 }
+
+void setColor(uint8_t r, uint8_t g, uint8_t b) {
+  instructions = 3;
+  dataBuffer[0] = 0x03;
+  dataBuffer[1] = LightCount;
+  dataBuffer[2] = 0x0;
+  dataBuffer[3] = 0x0;
+  dataBuffer[4] = 0x0;
+  dataBuffer[5] = 0x0;
+  dataBuffer[6] = 0x0; 
+  dataBuffer[7] = 0x0;    
+        
+  dataBuffer[0 + 8] = 0x04;
+  dataBuffer[1 + 8] = r;
+  dataBuffer[2 + 8] = g;
+  dataBuffer[3 + 8] = b;
+  dataBuffer[4 + 8] = 0x0;
+  dataBuffer[5 + 8] = 0x0;
+  dataBuffer[6 + 8] = LightCount; 
+  dataBuffer[7 + 8] = 0x0;
+
+  dataBuffer[0 + 16] = 0x02;
+  dataBuffer[1 + 16] = 0xE8;
+  dataBuffer[2 + 16] = 0x03;
+  dataBuffer[3 + 16] = 0x0;
+  dataBuffer[4 + 16] = 0x0;
+  dataBuffer[5 + 16] = 0x0;
+  dataBuffer[6 + 16] = 0x0; 
+  dataBuffer[7 + 16] = 0x0;
+  LightStatus = true;
+}
+
 
 // startWifi takes the provided ssid and password and attempts to join the network. It will return true once the status is connected or
 // after timeout * 500ms it will return false
@@ -209,72 +160,10 @@ bool startWiFi(const char * ssid, const char * password, int timeout) {
     Serial.print(".");
   }
   Serial.println("");
-  Serial.print("Connected to ");
-  Serial.println(ssid);
-  Serial.print("IP address: ");
-  Serial.println(WiFi.localIP());
-  serverIP = WiFi.localIP();
   return WiFi.status() == WL_CONNECTED;
 }
 
-// handleLogin is a response handler that reads the query paramters ssid and password then attempts to
-// join that network. It will return 200 OK if connected and 500 Not Connected otherwise.
-void handleLogin() {
-  Serial.println("Handler: /login");
-
-  String ssid = server.arg("ssid");
-  String password = server.arg("password");
-
-  if(startWiFi(ssid.c_str(), password.c_str(), 15)) {
-    if (writeCreds(ssid, password)) {
-      server.send(200, "text/html", "OK");
-      ESP.restart();
-      return;
-    }
-  }
-  
-  server.send(500, "text/html", "Not connected");
-  
-}
-
-// WifiSetup returns a string containing an HTML page for configuring network SSID and password
-// WifiSetup will scan for networks and list the joinable ones in an HTML select field.
-String WifiSetup() {
-
-  int n = WiFi.scanNetworks();
-   
-  String ssids[n];
-
-  for (int i = 0; i < n; ++i) {      
-    ssids[i] = WiFi.SSID(i) ;
-    delay(10);
-  }
-
-  String options = "";
-  for (int i = 0; i < n; ++i) {
-    options += "<option value=\"" +  ssids[i] + "\">" + ssids[i] + "</option>\n";
-  }
-  
-  return 
-"<html>"
-" <head></head>"
-" <body>"
-"   <form action=\"/login\">"
-"     <label for=\"wifi\">SSID:</label>"
-"     <select name=\"ssid\">" + options +  
-"     </select><br><br>"
-"     <label for=\"password\">Password:</label>"
-"     <input type=\"password\" id=\"password\" name=\"password\"><br><br>"
-"     <input type=\"submit\" value=\"Submit\">"
-"   </form>"
-" </body>"
-"</html>";
-}
-
-size_t instructions = 0;
 size_t upload_size = 0;
-
-static uint8_t dataBuffer[MAX_INSTRUCTIONS];
 
 void handleFileUpload(){ 
   Serial.println("Handler: /upload");
@@ -313,6 +202,17 @@ void serveTime(uint32_t delayAmount){
 
   for(;;) {
 
+    if  (WiFi.status() != WL_CONNECTED) {
+      FoundHub = false;
+      if (startWiFi(ssid, password, 10)) {
+        Serial.println("ReConnected to Hub");
+        startServer();
+        if (reportHub()) {
+          FoundHub = true;
+        }
+      }
+    }
+
     // serve a connection
     server.handleClient();
 
@@ -344,7 +244,7 @@ void serveTime(uint32_t delayAmount){
   }
 }
 
-
+int MissingHubColor = 0;
 
 void runInstructions(  Adafruit_NeoPixel * strip){
 
@@ -366,6 +266,7 @@ void runInstructions(  Adafruit_NeoPixel * strip){
   }
 
   uint16_t index;
+  uint16_t amount;
   uint32_t delayAmount;
   uint16_t count; 
   uint8_t r, g, b;
@@ -419,6 +320,18 @@ void runInstructions(  Adafruit_NeoPixel * strip){
       //Serial.println(b);
       //Serial.println(index);
       strip->setPixelColor(index, strip->Color(g, r, b)); 
+
+    }else if(dataBuffer[(counter * 8) + 0] == 0x4) {
+      r = dataBuffer[(counter * 8) + 1];
+      g = dataBuffer[(counter * 8) + 2];
+      b = dataBuffer[(counter * 8) + 3];
+      index = (dataBuffer[(counter * 8) + 5] << 8) | dataBuffer[(counter * 8) + 4];
+      amount = (dataBuffer[(counter * 8) + 7] << 8) | dataBuffer[(counter * 8) + 6];
+
+      for (uint16_t i = 0; i < amount; i++) {
+        strip->setPixelColor(i+index, strip->Color(g, r, b)); 
+      }
+      Serial.println("set colors");
     }else {
       Serial.println("Invalid");
       //Serial.println(dataBuffer[(counter * 8) + 0]);
@@ -429,6 +342,16 @@ void runInstructions(  Adafruit_NeoPixel * strip){
       //Serial.println(dataBuffer[(counter * 8) + 5]);
       //Serial.println(dataBuffer[(counter * 8) + 6]);
       //Serial.println(dataBuffer[(counter * 8) + 7]);
+    }
+
+    if (!FoundHub){
+      strip->setPixelColor(0, strip->Color(37, MissingHubColor, 37));
+      strip->show();
+    }
+
+    MissingHubColor+=20;
+    if (MissingHubColor > 255) {
+      MissingHubColor = 0;
     }
 
     lastInstruction = dataBuffer[(counter * 8) + 0];
@@ -443,26 +366,25 @@ void runInstructions(  Adafruit_NeoPixel * strip){
 
 void setup() {
 
+  Serial.begin(115200);
+
+  strip.begin(); 
+   
+  delay(500);
+
+  /*if (startWiFi(ssid, password, 60)) {
+    Serial.println("Connected to Hub");
+    startServer();
+    if (reportHub()){
+      FoundHub = true;
+    }
+   
+  }else {
+
+  } */ 
+
+  setColor(0xFC, 0xB6, 0x12);      
   
-   char ssid[32];
-   char password[32]; 
-
-   Serial.begin(115200);
-
-   strip.begin(); 
-   EEPROM.begin(EEPROM_TOTAL_SIZE);
-   
-   delay(5000);
-   
-   bool hasCredentials = readCreds(ssid, password);
-   if (hasCredentials) {
-       if (startWiFi(ssid, password, 60)) {
-           startServer();
-       }
-   } else {
-     WiFi.mode(WIFI_MODE_APSTA);  
-     startAP(ssidAP, passwordAP);
-   }
 }
 
 
