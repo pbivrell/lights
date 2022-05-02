@@ -1,8 +1,8 @@
 module github.com/pbivrell/lights/mock
 
-go 1.16
+go 1.18
 
 require (
-	github.com/gorilla/mux v1.8.0 // indirect
-	github.com/pbivrell/simpleserver v0.0.2 // indirect
+	github.com/davecgh/go-spew v1.1.1 // indirect
+	github.com/pbivrell/lights/api v0.0.0-20220309062017-1eb0895ce070 // indirect
 )

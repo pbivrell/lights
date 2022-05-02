@@ -67,8 +67,11 @@ func (s *Sequence) setCount(count uint16) {
 	s.history = append(s.history, bytes)
 }
 
-func (s *Sequence) SetWait(delay uint32) {
-	bytes := [8]byte{0x4, byte(0xFF & delay), byte(delay & 0xFF00 >> 8), byte(delay & 0xFF0000 >> 16), byte(delay >> 24), 0, 0, 0}
+func (s *Sequence) Fill(r, g, b uint8, index, count uint16) {
+	bytes := [8]byte{0x4, r, g, b, byte(index & 0xFF), byte(index >> 8), byte(count & 0xFF), byte(count >> 8)}
+	for i := index; i < count; i++ {
+		s.current[i] = Light{R: r, G: g, B: b}
+	}
 	s.history = append(s.history, bytes)
 }
 
