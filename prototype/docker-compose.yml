@@ -1,0 +1,17 @@
+version: '3.6'
+services:
+  api:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    container_name: "api"
+    restart: always
+  ui:
+    build:
+      context: ./light
+      dockerfile: Dockerfile
+    container_name: "ui"
+    environment:
+      REACT_APP_API_URL: https://lights.paulbivrell.com
+    restart: always
+
